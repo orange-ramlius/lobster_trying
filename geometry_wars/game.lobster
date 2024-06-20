@@ -19,6 +19,21 @@ let bulletspeed = 15
 var bullets = []
 var lastbullet = gl.time()
 
+def renderpointytriangle(pos, dir):
+    gl.translate pos:
+        gl.rotate_z dir:
+            gl.polygon([ float2 { -0.5, 0.5 }, float2_x, float2 { -0.5, -0.5} ])
+
+class enemy:
+    pos:float2
+    hp:int
+
+var enemyrate = 1.0
+let enemyshpeed = 3
+let enemymaxhp = 5
+var enemies = []
+var lastenemy = gl.time()
+
 while gl.frame() and gl.button("escape") != 1:
     gl.clear(color_black)
     gl.color(color_white)
@@ -35,7 +50,7 @@ while gl.frame() and gl.button("escape") != 1:
 
     let tomouse = normalize(gl.local_mouse_pos(0) - playerpos)
 
-    if lastbullet < gl.time():
+    if lastbullet < gl.time() and gl.button("mouse1") >= 1:
         bullets.push(bullet { playerpos, tomouse})
         lastbullet += firerate
 
@@ -47,6 +62,23 @@ while gl.frame() and gl.button("escape") != 1:
 
     bullets = filter(bullets) b:
         magnitude(b.pos) < worldsize * 2.0
+
+    if lastenemy < gl.time():
+        enemies.push(enemy { sincos(rnd(360)) * worldsize * 2.0, enemymaxhp })
+        lastenemy += enemyrate
+        enemyrate *= 0.999
+
+    for(enemies) e:
+        let playerdir = normalize(playerpos - e.pos)
+        e.pos += playerdir * gl.delta_time() * enemyspeed
+        for(bullets) b:
+            if magnitude(b.pos - e.pos) < 1.0:
+                e.hp = max(e.hp - 1, 0)
+                b.pos = float2_x * worldsize * 10.0
+        gl.color lerp(color_red, color_blue, div(e.hp, enemymaxhp)):
+            renderpointytriangle(e.pos, playerdir)
+
+    enemies = filter enemies: _.hp
 
     gl.translate gl.local_mouse_pos(0):
         gl.line_mode 1:
