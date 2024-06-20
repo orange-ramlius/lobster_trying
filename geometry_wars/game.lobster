@@ -59,68 +59,68 @@ while gl.frame() and gl.button("escape") != 1:
             enemies = []
             lastenemy = gl.time()
             playing = true
-        gl.text("health: {ceiling(playerhealth)} - score: {score} - highscore: {highscore}")
     else:
-        gl.translate(float(gl.window_size()) / 2.0)
-        let scale = gl.window_size().y / worldsize
-        gl.scale(scale)
+        gl.translate(float(gl.window_size()) / 2.0):
+            let scale = gl.window_size().y / worldsize
+            gl.scale(scale)
 
-        let dir = float2 { (gl.button("d") >= 1) - (gl.button("a") >= 1),
-                        (gl.button("s") >= 1) - (gl.button("w") >= 1) }
-        let newpos = playerpos + normalize(dir) * gl.delta_time() * playerspeed
-        if not any(abs(newpos) > float(gl.window_size()) / scale / 2.0):
-            playerpos = newpos
+            let dir = float2 { (gl.button("d") >= 1) - (gl.button("a") >= 1),
+                            (gl.button("s") >= 1) - (gl.button("w") >= 1) }
+            let newpos = playerpos + normalize(dir) * gl.delta_time() * playerspeed
+            if not any(abs(newpos) > float(gl.window_size()) / scale / 2.0):
+                playerpos = newpos
 
-        let tomouse = normalize(gl.local_mouse_pos(0) - playerpos)
+            let tomouse = normalize(gl.local_mouse_pos(0) - playerpos)
 
-        if lastbullet < gl.time() and gl.button("mouse1") >= 1:
-            bullets.push(bullet { playerpos, tomouse})
-            lastbullet += firerate
+            if lastbullet < gl.time() and gl.button("mouse1") >= 1:
+                bullets.push(bullet { playerpos, tomouse})
+                lastbullet += firerate
 
-        for(bullets) b:
-            b.pos += b.dir * gl.delta_time() * bulletspeed
-            gl.translate b.pos:
-                gl.color color_yellow:
-                    gl.circle(0.2, 20)
-
-        bullets = filter(bullets) b:
-            magnitude(b.pos) < worldsize * 2.0
-
-        if lastenemy < gl.time():
-            enemies.push(enemy { sincos(rnd(360)) * worldsize * 2.0, enemymaxhp })
-            lastenemy += enemyrate
-            enemyrate *= 0.999
-
-        for(enemies) e:
-            let playerdir = normalize(playerpos - e.pos)
-            let playervec = e.pos - playerpos
-            e.pos += playerdir * gl.delta_time() * enemyspeed
             for(bullets) b:
-                if magnitude(b.pos - e.pos) < 1.0:
-                    e.hp = max(e.hp - 1, 0)
-                    b.pos = float2_x * worldsize * 10.0
+                b.pos += b.dir * gl.delta_time() * bulletspeed
+                gl.translate b.pos:
+                    gl.color color_yellow:
+                        gl.circle(0.2, 20)
 
-            if magnitude(playervec) < 1.0:
-                playerhealth -= gl.delta_time() * 50.0
-                if playerhealth <= 0.0:
-                    playerhealth = 0.0
-                    highscore = max(highscore, score)
-                    playing = false
+            bullets = filter(bullets) b:
+                magnitude(b.pos) < worldsize * 2.0
 
-            gl.color lerp(color_red, color_blue, div(e.hp, enemymaxhp)):
-                renderpointytriangle(e.pos, playerdir)
+            if lastenemy < gl.time():
+                enemies.push(enemy { sincos(rnd(360)) * worldsize * 2.0, enemymaxhp })
+                lastenemy += enemyrate
+                enemyrate *= 0.999
 
-        enemies = filter enemies: _.hp
+            for(enemies) e:
+                let playerdir = normalize(playerpos - e.pos)
+                let playervec = e.pos - playerpos
+                e.pos += playerdir * gl.delta_time() * enemyspeed
+                for(bullets) b:
+                    if magnitude(b.pos - e.pos) < 1.0:
+                        e.hp = max(e.hp - 1, 0)
+                        b.pos = float2_x * worldsize * 10.0
+                        score += 10
 
-        gl.translate gl.local_mouse_pos(0):
-            gl.line_mode 1:
-                gl.color color_grey:
-                    gl.circle(0.5, 20)
+                if magnitude(playervec) < 1.0:
+                    playerhealth -= gl.delta_time() * 50.0
+                    if playerhealth <= 0.0:
+                        playerhealth = 0.0
+                        highscore = max(highscore, score)
+                        playing = false
 
-        gl.translate playerpos:
-            gl.rotate_z tomouse:
-                gl.polygon([ float2 { -0.5, 0.5 }, float2_x, float2 { -0.5, -0.5 } ])
-        gl.text("health: {ceiling(playerhealth)} - score: {score} - highscore: {highscore}")
+                gl.color lerp(color_red, color_blue, div(e.hp, enemymaxhp)):
+                    renderpointytriangle(e.pos, playerdir)
+
+            enemies = filter enemies: _.hp
+
+            gl.translate gl.local_mouse_pos(0):
+                gl.line_mode 1:
+                    gl.color color_grey:
+                        gl.circle(0.5, 20)
+
+            gl.translate playerpos:
+                gl.rotate_z tomouse:
+                    gl.polygon([ float2 { -0.5, 0.5 }, float2_x, float2 { -0.5, -0.5 } ])
+    gl.text("health: {ceiling(playerhealth)} - score: {score} - highscore: {highscore}")
 
 
 
