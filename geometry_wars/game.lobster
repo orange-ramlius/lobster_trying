@@ -6,8 +6,18 @@ import gl
 fatal(gl.window("Shooter Tutorial", 640, 480))
 
 let worldsize = 20.0
+
 var playerpos = float2_0
 let playerspeed = 10
+
+class bullet:
+    pos:float2
+    dir:float2
+
+let firerate = 0.1
+let bulletspeed = 15
+var bullets = []
+var lastbullet = gl.time()
 
 while gl.frame() and gl.button("escape") != 1:
     gl.clear(color_black)
@@ -23,5 +33,27 @@ while gl.frame() and gl.button("escape") != 1:
     if not any(abs(newpos) > float(gl.window_size()) / scale / 2.0):
         playerpos = newpos
 
+    let tomouse = normalize(gl.local_mouse_pos(0) - playerpos)
+
+    if lastbullet < gl.time():
+        bullets.push(bullet { playerpos, tomouse})
+        lastbullet += firerate
+
+    for(bullets) b:
+        b.pos += b.dir * gl.delta_time() * bulletspeed
+        gl.translate b.pos:
+            gl.color color_yellow:
+                gl.circle(0.2, 20)
+
+    bullets = filter(bullets) b:
+        magnitude(b.pos) < worldsize * 2.0
+
+    gl.translate gl.local_mouse_pos(0):
+        gl.line_mode 1:
+            gl.color color_grey:
+                gl.circle(0.5, 20)
+
     gl.translate playerpos:
-        gl.circle(1.0,6)
+        gl.rotate_z tomouse:
+            gl.polygon([ float2 { -0.5, 0.5 }, float2_x, float2 { -0.5, -0.5 } ])
+
